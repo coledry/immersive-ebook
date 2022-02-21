@@ -20,7 +20,9 @@ from io import StringIO
 import PyPDF2
 import json
 from sys import version_info
+import pygame
 
+pygame.mixer.init()
 url='https://raw.githubusercontent.com/colbychambers25/immersive-ebook/main/Domain_Free_eBook.csv'
 book_library = pd.read_csv(url) #print to see what the panda looks like
 #print(book_library)
@@ -32,6 +34,20 @@ def get_from_library(target_url):
     response = requests.get(target_url)
     data = response.text
     return(data)
+
+def music(n):
+    if n == 1:
+        pygame.mixer.music.load('Light-Years_v001.mp3')
+        pygame.mixer.music.play(loops=0)
+    else:
+        #if you send a 0 the song will continue from page to page
+        temp=0 #just here for the else function for now
+
+def music_player(window):
+    if window.counter == 0:
+        music(1)
+    else:
+        music(0)
 
 def diction():
     '''
@@ -51,8 +67,10 @@ def diction():
     index = diction[book_to_get]
     # The line below is how the book is found in the dictionary. 
     story = get_from_library(target_url = book_library['URL'][index]) 
-    if book_to_get != "Drifting Towards Purpose":
+    if book_to_get != "Drifting Towards Purpose" and book_to_get != "The Raven":
         story = split_function(story)
+    else:
+        print('working')
     final_pages=story.split('---split---') #this is the page splitting decider.
     # We will either need to write a function to change pdfs into txt files
     return final_pages
@@ -71,6 +89,7 @@ def pages(window,final_pages, forward_back):
         window.counter -= 1
     if forward_back == "adv" and window.counter != len(final_pages):
         window.counter += 1
+    music_player(window)
     moderator = len(final_pages) <= window.counter
     canvas = Canvas(bg="dark gray", width=595, height=770)
     canvas.place(relx=.5, rely=.5, anchor=CENTER)
@@ -112,7 +131,7 @@ def adv_button(window,final_pages):
     adv = 'adv'
     btn = Button(
     window,
-    text="->",
+    text=">",
     height=3,
     width=3,
     command = lambda: pages(window,final_pages,adv)
@@ -124,9 +143,9 @@ def back_button(window,final_pages):
     back = "back"
     btn2 = Button(
     window,
-    text="<-",
-    height=3,
-    width=3,
+    height = 3,
+    width = 3,
+    text = '<',
     command = lambda: pages(window,final_pages,back)
     )
     btn2.pack(side="right")
