@@ -26,6 +26,8 @@ pygame.mixer.init()
 url='https://raw.githubusercontent.com/colbychambers25/immersive-ebook/main/Domain_Free_eBook.csv'
 book_library = pd.read_csv(url) #print to see what the panda looks like
 #print(book_library)
+url= 'https://raw.githubusercontent.com/colbychambers25/immersive-ebook/page_audio_map/Sound_audio_map.csv'
+audio_map = pd.read_csv(url)
 
 def get_from_library(target_url):
     '''
@@ -35,19 +37,25 @@ def get_from_library(target_url):
     data = response.text
     return(data)
 
-def music(n):
+def music(n,song):
     if n == 1:
-        pygame.mixer.music.load('Light-Years_v001.mp3')
-        pygame.mixer.music.play(loops=0)
+        pygame.mixer.music.load('ereadmp3/'+song)
+        pygame.mixer.music.play(loops=30)
     else:
-        #if you send a 0 the song will continue from page to page
-        temp=0 #just here for the else function for now
+        i = 'do nothing'
 
-def music_player(window):
+def music_player(window,title):
+    #if title != 'continue':
+     #   music(0,title)
+     #   return
+    song = audio_map[title].iloc[(window.counter)]
+    print(song)
     if window.counter == 0:
-        music(1)
+        music(1,song)
+    elif song != audio_map[title].iloc[(window.counter)-1]:
+        music(1,song)
     else:
-        music(0)
+        music(0,song)
 
 def diction():
     '''
@@ -73,10 +81,10 @@ def diction():
         print('working')
     final_pages=story.split('---split---') #this is the page splitting decider.
     # We will either need to write a function to change pdfs into txt files
-    return final_pages
+    return final_pages, book_to_get
 
 
-def pages(window,final_pages, forward_back):
+def pages(window,final_pages, forward_back,title):
     '''
     This creates the pages of the tkinter pop up. Currently only works for
     the story Drifting Towards Purpose as the others text files are not formatted
@@ -89,8 +97,9 @@ def pages(window,final_pages, forward_back):
         window.counter -= 1
     if forward_back == "adv" and window.counter != len(final_pages):
         window.counter += 1
-    music_player(window)
     moderator = len(final_pages) <= window.counter
+    if moderator == False:
+        music_player(window,title)
     canvas = Canvas(bg="dark gray", width=595, height=770)
     canvas.place(relx=.5, rely=.5, anchor=CENTER)
     canvas.config(highlightthickness=0)
@@ -101,6 +110,7 @@ def thanks(window):
     '''
     Currently the last page of the book. It just prints thank you.
     '''
+    music(0,'none')
     canvas = Canvas(bg="dark gray", width=595, height=770)
     canvas.place(relx=.5, rely=.5, anchor=CENTER)
     canvas.config(highlightthickness=0)
@@ -127,47 +137,29 @@ def welcome_screen():
     return diction()
     
 
-def adv_button(window,final_pages):
+def adv_button(window,final_pages,title):
     adv = 'adv'
     btn = Button(
     window,
     text=">",
     height=3,
     width=3,
-    command = lambda: pages(window,final_pages,adv)
+    command = lambda: pages(window,final_pages,adv,title)
     )
     btn.pack(side="right")
     btn.place(relx=.5, rely=.5,x=400, anchor=CENTER)
 
-def back_button(window,final_pages):
+def back_button(window,final_pages,title):
     back = "back"
     btn2 = Button(
     window,
     height = 3,
     width = 3,
     text = '<',
-    command = lambda: pages(window,final_pages,back)
+    command = lambda: pages(window,final_pages,back,title)
     )
     btn2.pack(side="right")
     btn2.place(relx=.5, rely=.5,x=340, anchor=CENTER)
-
-def main():
-    ''' 
-    Creates the window, and calls this diction function to get a key value pair linked by page number.
-    Currently only supports .txt files because pdf files lack the functionality 
-    to be manipulated and most domain stories use .txt or .epub not pdf.
-    '''
-    window = Tk()
-    window.title("Immersive Reading")
-    window.configure(bg="gray")
-    window.geometry("900x800")
-    frame = Frame(window)
-    frame.pack()
-    window.counter = -1 #this is universal counter funtion that allows a user to traverse a story.
-    final_pages= welcome_screen()
-    adv_button(window, final_pages)
-    back_button(window, final_pages) 
-    window.mainloop() #basically refreshes the window
 
 def split_function(story):
     story = story.splitlines(True)
@@ -189,6 +181,24 @@ def split_function(story):
         n+=1
     return new_story
 
+def main():
+    ''' 
+    Creates the window, and calls this diction function to get a key value pair linked by page number.
+    Currently only supports .txt files because pdf files lack the functionality 
+    to be manipulated and most domain stories use .txt or .epub not pdf.
+    '''
+    window = Tk()
+    window.title("Immersive Reading")
+    window.configure(bg="gray")
+    window.geometry("900x800")
+    frame = Frame(window)
+    frame.pack()
+    window.counter = -1 #this is universal counter funtion that allows a user to traverse a story.
+    final_pages, title = welcome_screen()
+    adv_button(window, final_pages, title)
+    back_button(window, final_pages, title) 
+    window.mainloop() #basically refreshes the window
+
+
 if __name__ == "__main__":
     main()
-
