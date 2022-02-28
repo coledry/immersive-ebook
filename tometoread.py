@@ -30,7 +30,7 @@ url= 'https://raw.githubusercontent.com/colbychambers25/immersive-ebook/page_aud
 audio_map = pd.read_csv(url)
 prev_song = ['none']
 
-class book:
+class Book:
     def __init__(self,book_title):
         self.book_title = book_title
         if __name__ == "__main__":
@@ -236,5 +236,5 @@ class book:
         window.mainloop() #basically refreshes the window
 
 
-#book1 = book("Treasure Island") #this line is how we will take in the book from the library.
+#book1 = Book("Treasure Island") #this line is how we will take in the book from the library.
 
