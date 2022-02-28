@@ -10,16 +10,10 @@ NOTES: 1. There are some imports that im not sure are doing anything.
         5. Sorry James for taking out what you had changed I just was having trouble with getting
              the window to work on my computer and I am not sure why lol.
 '''
-from curses import window
 from tkinter import *
-import tkinter.scrolledtext as tkst
-from turtle import position
+from turtle import color, position
 import pandas as pd
 import requests
-from io import StringIO
-import PyPDF2
-import json
-from sys import version_info
 import pygame
 import customtkinter
 
@@ -31,11 +25,22 @@ audio_map = pd.read_csv(url)
 prev_song = ['none']
 
 class Book:
-    def __init__(self,book_title):
+    def __init__(self,book_title, sound,theme):
         self.book_title = book_title
+        self.sound = sound
+        self.theme = theme
         if __name__ == "__main__":
             self.main()
 
+    def sound_switch(self):
+        if self.sound == 'on':
+            self.sound = 'off'
+        else:
+            self.sound = 'on'
+        return
+
+    def sound_switch_button(self):
+        return
 
     def get_from_library(self,target_url):
         '''
@@ -61,7 +66,10 @@ class Book:
         else:
             song = audio_map[title].iloc[(window.counter)]
         print(song)
-        if window.counter == 0:
+        if self.sound == 'off':
+            #do nothing
+            sound = 'off'
+        elif window.counter == 0:
             prev_song[0] = song
             self.music(1,song)
         elif song != prev_song[0] and window.counter != 0:
@@ -113,10 +121,10 @@ class Book:
         if moderator == False:
             self.music_player(window,title)
         canvas = Canvas(bg="dark gray", width=595, height=770)
-        canvas.place(relx=.5, rely=.5, anchor=CENTER)
+        canvas.place(relx=.5, rely=.5,x=-60,anchor=CENTER)
         canvas.config(highlightthickness=0)
-        text = canvas.create_text(30, 20, text=str(window.counter)+'/'+str(pages_total) if moderator == False else thanks(window), fill="black", font=('Times 17'),width=510, )
-        text = canvas.create_text(300, 400, text=final_pages[window.counter] if moderator == False else thanks(window), fill="black", font=('Times 17'),width=530, )
+        text = canvas.create_text(30, 20, text=str(window.counter)+'/'+str(pages_total) if moderator == False else self.thanks(window), fill="black", font=('Times 17'),width=510, )
+        text = canvas.create_text(300, 400, text=final_pages[window.counter] if moderator == False else self.thanks(window), fill="black", font=('Times 17'),width=530, )
 
     def thanks(self):
         '''
@@ -130,39 +138,90 @@ class Book:
         text = canvas.create_text(300, 550, text="Music by Eric Matyas\nwww.soundimage.org", fill="black", font=('Times 18'),width=430)
 
 
-    def welcome_screen(self):
+    def information(self):
         '''
-        Welcome Screen so the window isnt just blank until we add the library.
+        Information on book
         '''
-        title_line = 'Hello and Welcome to Tome To Read'
-        canvas = customtkinter.CTkLabel(bg="dark gray", width=595, height=770,text="Which book would you like to read?")
-        canvas.place(relx=.5, rely=.5, anchor=CENTER)
+        canvas = customtkinter.CTkLabel(width=225, height=500,text="Title:\n"+self.book_title+"\nAuthor:\n\nYear:\n\nInfo:\n\n")
+        canvas.place(relx=.5, rely=.5,x=465,y=-100, anchor=CENTER)
         canvas.config(highlightthickness=0)
-        titles = book_library["Title"]
-        title_str = ''
-        for item in titles:
-            title_str += item + '\n'
 
-        print(titles)
-        
-        
-        return self.diction()
-        
+    def music_information(self):
+        '''
+        Information on song
+        '''
+        canvas = customtkinter.CTkLabel(width=250, height=80,text="Song Title:\nExample -By: Example")
+        canvas.place(relx=.5, rely=.5,x=410,y=230, anchor=CENTER)
+        canvas.config(highlightthickness=0)
+
+    def menu_bar(self,window):
+        frame_4 = customtkinter.CTkFrame(master=window, width=80, height=500)
+        frame_4.place(relx=.5, rely=.5,x=-520, anchor=CENTER)
+        frame_4.configure(fg_color=("lightgray"))
+        self.library_button(frame_4)
+        self.find_button(frame_4)
+        self.settings_button(frame_4)
+        self.upload_button(frame_4)
+    
+    def library_return(self):
+        None
+    def finder(self):
+        None
+    def settings_link(self):
+        None
+    def upload_link(self):
+        None
+
+    def find_button(self,frame):
+        photo = PhotoImage(file = 'ereadpngs/book-research.png')
+        btn2 = customtkinter.CTkButton(master = frame, width=200,height=80,border_width=2,fg_color=("white", "lightgray"),
+        corner_radius=8,text = '',image = photo,text_color='black',
+        command = lambda: self.finder()
+        )
+        btn2.pack(side="right")
+        btn2.place(relx=.5, rely=.5,y=-180, anchor=CENTER)
+
+    def library_button(self,frame):
+        photo = PhotoImage(file = 'ereadpngs/binder-file.png')
+        btn2 = customtkinter.CTkButton(master = frame,width=200,height=80,border_width=2,fg_color=("white", "lightgray"),
+        corner_radius=8,text = '',image = photo,text_color='black',
+        command = lambda: self.library_return()
+        )
+        btn2.pack(side="right")
+        btn2.place(relx=.5, rely=.5,y=-60, anchor=CENTER)
+    def upload_button(self,frame):
+        photo = PhotoImage(file = 'ereadpngs/cloud-upload.png')
+        btn2 = customtkinter.CTkButton(master = frame,width=200,height=80,border_width=2,fg_color=("white", "lightgray"),
+        corner_radius=8,text = '',image = photo,text_color='black',
+        command = lambda: self.upload_link()
+        )
+        btn2.pack(side="right")
+        btn2.place(relx=.5, rely=.5,y=180, anchor=CENTER)
+
+    def settings_button(self,frame):
+        photo = PhotoImage(file = 'ereadpngs/settings-gear.png')
+        btn2 = customtkinter.CTkButton(master = frame,width=200,height=80,border_width=2,fg_color=("white", "lightgray"),
+        corner_radius=8,text = '',image = photo,text_color='black',
+        command = lambda: self.settings_link()
+        )
+        btn2.pack(side="right")
+        btn2.place(relx=.5, rely=.5,y=60, anchor=CENTER)
+    
     def volume(self):
         return
 
     def vol_slider(self,window):
         slider = customtkinter.CTkSlider(master=window,
-        width=180,
+        width=230,
         height=25,
         border_width=5.5,
         from_=0,
         to=100,
         command=self.volume())
-        slider.place(relx=0.5, rely=0.5,x=405,y=-50, anchor=CENTER)
+        slider.place(relx=0.5, rely=0.5,x=410,y=300, anchor=CENTER)
 
     def adv_button(self,window,final_pages,title):
-        photo = PhotoImage(file = 'chevron-right.png')
+        photo = PhotoImage(file = 'ereadpngs/chevron-right.png')
         photo = photo.subsample(15)
         adv = "adv"
         btn2 = customtkinter.CTkButton(
@@ -176,10 +235,10 @@ class Book:
         command = lambda: self.pages(window,final_pages,adv,title)
         )
         btn2.pack(side="right")
-        btn2.place(relx=.5, rely=.5,x=450,y=50, anchor=CENTER)
+        btn2.place(relx=.5, rely=.5,x=290, anchor=CENTER)
 
     def back_button(self,window,final_pages,title):
-        photo = PhotoImage(file = 'chevron-left.png')
+        photo = PhotoImage(file = 'ereadpngs/chevron-left.png')
         photo = photo.subsample(15)
         back = "back"
         btn2 = customtkinter.CTkButton(
@@ -193,7 +252,7 @@ class Book:
         command = lambda: self.pages(window,final_pages,back,title)
         )
         btn2.pack(side="right")
-        btn2.place(relx=.5, rely=.5,x=360,y=50, anchor=CENTER)
+        btn2.place(relx=.5, rely=.5,x=-410, anchor=CENTER)
 
     def split_function(self,story):
         story = story.splitlines(True)
@@ -222,10 +281,10 @@ class Book:
         to be manipulated and most domain stories use .txt or .epub not pdf.
         '''
         window = customtkinter.CTk()
-        customtkinter.set_default_color_theme("dark-blue")
+        customtkinter.set_default_color_theme(self.theme)
         window.title("Immersive Reading")
-        window.configure(bg="gray")
-        window.geometry("1100x800")
+        window.configure()
+        window.geometry("1200x800")
         frame = Frame(window)
         frame.pack()
         window.counter = -1 #this is universal counter funtion that allows a user to traverse a story.
@@ -233,8 +292,11 @@ class Book:
         self.vol_slider(window)
         self.adv_button(window, final_pages, title)
         self.back_button(window, final_pages, title) 
+        self.information()
+        self.music_information()
+        self.menu_bar(window)
         window.mainloop() #basically refreshes the window
 
 
-#book1 = Book("Treasure Island") #this line is how we will take in the book from the library.
+book1 = Book("Treasure Island",'off','') #inputs are title, on/off for music, then 'green','blue','dark-blue', or ''
 
