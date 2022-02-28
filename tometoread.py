@@ -283,7 +283,7 @@ class Book:
         window = customtkinter.CTk()
         customtkinter.set_default_color_theme(self.theme)
         window.title("Immersive Reading")
-        window.configure()
+        window.configure(bg = 'gray')
         window.geometry("1200x800")
         frame = Frame(window)
         frame.pack()
@@ -298,5 +298,5 @@ class Book:
         window.mainloop() #basically refreshes the window
 
 
-book1 = Book("Treasure Island",'off','') #inputs are title, on/off for music, then 'green','blue','dark-blue', or ''
+book1 = Book("Treasure Island",'off','green')#inputs are title, on/off for music, then 'green','blue','dark-blue', or ''
 
