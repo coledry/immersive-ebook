@@ -25,7 +25,8 @@ audio_map = pd.read_csv(url)
 prev_song = ['none']
 
 class Book:
-    def __init__(self,book_title, sound,theme):
+    def __init__(self,book_title, sound,theme,window):
+        self.window = window
         self.book_title = book_title
         self.sound = sound
         self.theme = theme
@@ -280,13 +281,7 @@ class Book:
         Currently only supports .txt files because pdf files lack the functionality 
         to be manipulated and most domain stories use .txt or .epub not pdf.
         '''
-        window = customtkinter.CTk()
-        customtkinter.set_default_color_theme(self.theme)
-        window.title("Immersive Reading")
-        window.configure(bg = 'gray')
-        window.geometry("1200x800")
-        frame = Frame(window)
-        frame.pack()
+        window = self.window
         window.counter = -1 #this is universal counter funtion that allows a user to traverse a story.
         final_pages, title = self.diction(self.book_title)
         self.vol_slider(window)
@@ -297,6 +292,15 @@ class Book:
         self.menu_bar(window)
         window.mainloop() #basically refreshes the window
 
+        
+        
+#everything below here should be deleted when using this file but it is here for testing
+window = customtkinter.CTk()
+#customtkinter.set_default_color_theme(self.theme)
+window.title("Immersive Reading")
+window.configure(bg = 'gray')
+window.geometry("1200x800")
+frame= Frame(window)
+frame.pack()
 
-book1 = Book("Treasure Island",'off','green')#inputs are title, on/off for music, then 'green','blue','dark-blue', or ''
-
+Book("Treasure Island",'off','',window)
