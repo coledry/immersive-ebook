@@ -5,7 +5,6 @@ DESCRIPTION: So far this is the welcome page. Probably will integrate most thing
             However, this is just the skeleton for the main page that displays the Logo as well as a welcome.
             The welcome screen itself will have the functionality of being able to click anywhere on screen to switch
             over to the main screen. 
-
 '''
 from distutils.command.upload import upload
 from tkinter import *
@@ -80,7 +79,7 @@ class start_page(tk.Frame):
         labl.place(relx=0.5, rely=0.5, anchor= CENTER)
 
         # main logo creation, implementation, placing into frame
-        logo = Image.open("TomeToRead_Logo.png")
+        logo = Image.open("tome.png")
         logo = logo.resize((350,380))
         logo = ImageTk.PhotoImage(logo)
         logo_label = Label(self,image=logo)
@@ -127,8 +126,8 @@ class main_menu(tk.Frame):
             border_width=0,
             corner_radius=2,
             text="Read",
-            text_font = ("Raleway", 15)
-            # implement command once library page is done
+            text_font = ("Raleway", 15),
+            command = lambda: create_book("Treasure Island",'on','',tk.Frame)
         )
         library_btn.pack(anchor=CENTER)
         library_btn.place(relx=.45,rely=.7,anchor=CENTER)
@@ -163,7 +162,7 @@ class main_menu(tk.Frame):
         settings_btn.place(relx=.55, rely=.775, anchor=CENTER)
 
         # logo in main menu
-        logo = Image.open("TomeToRead_Logo.png")
+        logo = Image.open("tome.png")
         logo = logo.resize((350,380))
         logo = ImageTk.PhotoImage(logo)
         logo_label = Label(self,image=logo)
@@ -201,7 +200,6 @@ class upload_page(tk.Frame):
             self,
             textvariable=upload_text,
             command = lambda: upload_file(upload_text,self)
-
         )''' # need to experiment and see how uploading files should be stored/saved, pickle module might be a good option.
         # placeholder upload button
         upload_btn = customtkinter.CTkButton(
@@ -262,17 +260,22 @@ class settings_page(tk.Frame):
 '''
 Need to fix getting and inputting book_title, sound, and theme to pass as args into the init for ereader page to work.
 '''
-class ereader_page(tk.Frame):
-    def __init__(self,parent, controller, book_title, sound, theme):
-        tk.Frame.__init__(self,parent)
+
+
+class Book:
+    def __init__(self,book_title, sound,theme,window):
+        #self.window = window
+        
+        self.window = window
         self.book_title = book_title
         self.sound = sound
         self.theme = theme
-        
-    
+        if __name__ == "__main__":
+            self.main()
+
     def sound_switch(self):
-        if self.sound == "on":
-            self.sound = "off"
+        if self.sound == 'on':
+            self.sound = 'off'
         else:
             self.sound = 'on'
         return
@@ -316,31 +319,7 @@ class ereader_page(tk.Frame):
         else:
             prev_song[0] = song
             self.music(0,song)
-    
-    def diction(self,book):
-        '''
-        Basically this function creates dictionary
-        that links the pages of the story with an index number.
-        print(diction) will show you what I am referring too.
-        '''
-        
-        diction = {}
-        i = 0
-        for row in book_library['Title']:
-            diction[book_library['Title'][i]] = i
-            print(diction)
-            i+=1
-        index = diction[book]
-        # The line below is how the book is found in the dictionary. 
-        story = self.get_from_library(target_url = book_library['URL'][index]) 
-        if book != "The Raven":
-            story = self.split_function(story)
-        else:
-            print('working')
-        final_pages=story.split('---split---') #this is the page splitting decider.
-        # We will either need to write a function to change pdfs into txt files
-        return final_pages, book
-    
+
     def diction(self,book):
         '''
         Basically this function creates dictionary
@@ -417,13 +396,14 @@ class ereader_page(tk.Frame):
         canvas.config(highlightthickness=0)
 
     def menu_bar(self,window):
-        frame_4 = customtkinter.CTkFrame(master=window, width=80, height=500)
+        frame_4 = customtkinter.CTkFrame(width=80, height=500)
         frame_4.place(relx=.5, rely=.5,x=-520, anchor=CENTER)
         frame_4.configure(fg_color=("lightgray"))
         self.library_button(frame_4)
         self.find_button(frame_4)
         self.settings_button(frame_4)
         self.upload_button(frame_4)
+        frame_4.tkraise()
     
     def library_return(self):
         None
@@ -473,7 +453,7 @@ class ereader_page(tk.Frame):
         return
 
     def vol_slider(self,window):
-        slider = customtkinter.CTkSlider(master=window,
+        slider = customtkinter.CTkSlider(
         width=230,
         height=25,
         border_width=5.5,
@@ -535,7 +515,33 @@ class ereader_page(tk.Frame):
             i+=1
             n+=1
         return new_story
-    
+
+    def main(self):
+        ''' 
+        Creates the window, and calls this diction function to get a key value pair linked by page number.
+        Currently only supports .txt files because pdf files lack the functionality 
+        to be manipulated and most domain stories use .txt or .epub not pdf.
+        '''
+        frame_4 = Frame(width=1200, height=800)
+        frame_4.place(relx=.5, rely=.5, anchor=CENTER)
+        frame_4.configure()
+        frame_4.tkraise()
+        
+        window = frame_4
+        window.counter = -1 #this is universal counter funtion that allows a user to traverse a story.
+        final_pages, title = self.diction(self.book_title)
+        self.vol_slider(window)
+        self.adv_button(window, final_pages, title)
+        self.back_button(window, final_pages, title) 
+        self.information()
+        self.music_information()
+        self.menu_bar(window)
+        #window.mainloop() #basically refreshes the window
+
+
+def create_book(title,two,three,frame):
+    Book(title,two,three,frame)
+
 def main():
     # Main window that pops up
     app = tome_to_read()
