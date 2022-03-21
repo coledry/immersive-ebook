@@ -7,6 +7,7 @@ DESCRIPTION: So far this is the welcome page. Probably will integrate most thing
             over to the main screen. 
 
 '''
+
 from tkinter import *
 import tkinter as tk
 from tkinter.filedialog import askopenfile
@@ -55,8 +56,6 @@ class music_file:
             self.files.append(file)
         os.chdir("...")
         
-
-
     def save_files(self):
         self.song_dataframe = pd.DataFrame(self.files)
         self.song_dataframe.to_csv('tometoread_music.txt',encoding='utf-8',index=False)
@@ -66,6 +65,7 @@ class music_file:
 
 
 class tome_to_read(tk.Tk):
+    
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         
@@ -85,16 +85,19 @@ class tome_to_read(tk.Tk):
             frame.grid(row = 0, column = 0, sticky="nsew")
 
         self.show_frame(start_page)
-        self.music_songs = music_file()
+
+        self.mp3s = music_file()
         self.story = story_file()
         
         # pygame.mixer.music.load(self.music.files[3])
         # pygame.mixer.music.play(loops=0)
-    
+
     def show_frame(self,cont):
         frame = self.frames[cont]
         frame.tkraise()
 
+    def get_music(self):
+        return self.mp3s
         
     def upload_file(self,type_of_upload):
         if type_of_upload == "Music":
@@ -104,10 +107,10 @@ class tome_to_read(tk.Tk):
         file = askopenfile(parent=self,mode="rb", title=f'Choose {type_of_upload} to upload!', filetype=file_type)
         if type_of_upload == "Music" and file:
             # do something with the music file 
-            self.music_songs.add_file(file.name)
+            self.mp3s.add_file(file.name)
             pygame.mixer.music.load(file.name)
             pygame.mixer.music.play(loops=0)
-            self.music_songs.save_files()
+            self.mp3s.save_files()
             
         if type_of_upload == "Story" and file:
             self.story.add_story(file)
@@ -237,14 +240,6 @@ class upload_page(tk.Frame):
         back_arrow.pack(side="left")
         back_arrow.place(x=50, y= 50, anchor=W)
 
-        # Upload Story button, only allows upload of txt and pdf files
-        '''upload_text = tk.StringVar()
-        upload_btn = customtkinter.CTkButton(
-            self,
-            textvariable=upload_text,
-            command = lambda: upload_file(upload_text,self)
-
-        )''' # need to experiment and see how uploading files should be stored/saved, pickle module might be a good option.
         # placeholder upload button
         upload_btn = customtkinter.CTkButton(
             self,
@@ -260,7 +255,6 @@ class upload_page(tk.Frame):
         upload_btn.place(relx=.3, rely=.75, anchor= CENTER)
     
         # Upload Music button, only allows upload of mp3 files
-        # placeholder upload music button
         music_upload = customtkinter.CTkButton(
             self,
             width=100,
@@ -275,17 +269,9 @@ class upload_page(tk.Frame):
 
         # frame that showcases all the songs that are stored
         # currently not working. cant access controller.music_songs.files
-        '''song_showcase = Frame(self,width=300,height=400,bg="grey")
-        song_showcase.place(relx=.7,rely=.4,anchor=CENTER)
-        
-        for song in controller.music_songs.files:
-            song_btn = customtkinter.CTkButton(
-                song_showcase,
-                width=300,
-                height=25,
-                text=song
-            )
-            song_btn.pack(song_showcase,fill="x")'''
+        '''songlistbox = Listbox(self,width=100,height=25,background="grey")
+        songlistbox.place(relx=.7,rely=.4,anchor=CENTER)
+        songlistbox.insert(controller.get_music().files)'''
             
         # song_scrollbar = Scrollbar(song_showcase,orient="vertical")
         # song_scrollbar.pack(side="right",fill="y")
@@ -315,6 +301,40 @@ class settings_page(tk.Frame):
         )
         back_arrow.pack(side="left")
         back_arrow.place(x=50, y= 50, anchor=W)
+
+        # sec1 frame
+        sec1 = Frame(self,width=585,height=70,bg='white')
+        sec1.place(relx=.5,rely=.2,anchor=N)
+
+        # labels
+        interface_lbl = Label(sec1, text="Interface Settings",font=("Raleway", 14), fg="black",bg="white")
+        interface_lbl.place(relx=.5,rely=.2,anchor=CENTER)
+        light_dark_lbl = Label(sec1, text="Interface Style:", font=("Raleway",12), fg="black",bg="white")
+        light_dark_lbl.place(relx=.2,rely=.7,anchor=CENTER)
+
+        # sec2 frame
+        sec2 = Frame(self,width=585,height=225,bg="white")
+        sec2.place(relx=.5,rely=.4,anchor=N)
+
+        volume_lbl = Label(sec2, text="Volume Settings", font = ("Raleway", 14), fg="black", bg="white")
+        volume_lbl.place(relx=.5, rely=.1,anchor=CENTER)
+        music_lbl = Label(sec2, text="Music:", font = ("Raleway", 12), fg="black", bg="white")
+        music_lbl.place(relx=.23, rely=.4,anchor=CENTER)
+        soundfx_lbl = Label(sec2, text="Sound FX:", font = ("Raleway", 12), fg="black", bg="white")
+        soundfx_lbl.place(relx=.2, rely=.6,anchor=CENTER)
+
+        # sec3 frame
+        sec3= Frame(self,width= 585, height=225, bg="white")
+        sec3.place(relx=.5,rely=.75, anchor=N)
+
+
+        font_lbl = Label(sec3, text="Font Settings:", font = ("Raleway", 14), fg="black", bg="white")
+        font_lbl.place(relx=.5, rely=.1,anchor=CENTER)
+        fstyle_lbl = Label(sec3, text="Font Style:", font = ("Raleway", 12), fg="black", bg="white")
+        fstyle_lbl.place(relx=.2, rely=.4,anchor=CENTER)
+        fsize_lbl = Label(sec3, text="Font Size:", font = ("Raleway", 12), fg="black", bg="white")
+        fsize_lbl.place(relx=.2, rely=.6,anchor=CENTER)
+
 
 
 # ereader page currently does NOT work. 
@@ -609,6 +629,7 @@ def main():
     ereader_page.music_information()
     ereader_page.menu_bar(app)''' # fix up ereader class
     app.mainloop()
+    
     
     
     
