@@ -5,17 +5,17 @@ DESCRIPTION: So far this is the welcome page. Probably will integrate most thing
             However, this is just the skeleton for the main page that displays the Logo as well as a welcome.
             The welcome screen itself will have the functionality of being able to click anywhere on screen to switch
             over to the main screen. 
+
 '''
-from distutils.command.upload import upload
 from tkinter import *
 import tkinter as tk
 from tkinter.filedialog import askopenfile
-from typing import final
 from PIL import Image, ImageTk
 import customtkinter
 import pandas as pd
 import requests
 import pygame
+import os
 
 pygame.mixer.init()
 
@@ -25,30 +25,50 @@ url= 'https://raw.githubusercontent.com/colbychambers25/immersive-ebook/page_aud
 audio_map = pd.read_csv(url)
 prev_song = ['none']
 
-def upload_file(text,root, file_type, type_of_upload):
-    if type_of_upload == "Music":
-        file_type = [("Mp3 Files","*.mp3")]
-    if type_of_upload == "Story":
-        file_type = [("Pdf file","*.pdf"), ("text files","txt")]
-    file = askopenfile(parent=root,mode="rb", title=f'Choose {type_of_upload} to upload!', filetype=file_type)
-    if type_of_upload == "Music" and file:
-        # do something with the music file
-        pass
-    if type_of_upload == "Story" and file:
-        # do something with the pdf/text file
-        pass
+class story_file:
+    def __init__(self):
+        self.story = []
+        # path = "./ereadpngs"
+        '''os.chdir(path)
+        for file in os.listdir():
+            self.story.append(file)'''
+        
+    def save_files(self):
+        file = open('story.txt','w')
+        for stories in self.story:
+            if stories not in file:
+                file.write(stories +'\n')
+        file.close()
 
-def placeholder_upload_func(root,music_or_story):
-    file = askopenfile(parent=root,mode="rb", title=f"Choose {music_or_story} to upload!", filetype=[("Pdf file","*.pdf"), ("text files","txt")])
-    if file:
-        print("testcase 1 passed: file was able to be loaded in.")
-    else:
-        print("testcase 1 failed, file did not load properly")
+    def add_story(self,filename):
+        self.story.append(filename)
+
+
+class music_file:
+    def __init__(self):
+
+        self.files = []
+
+        path = "./ereadmp3"
+        os.chdir(path)
+        for file in os.listdir():
+            self.files.append(file)
+        os.chdir("...")
+        
+
+
+    def save_files(self):
+        self.song_dataframe = pd.DataFrame(self.files)
+        self.song_dataframe.to_csv('tometoread_music.txt',encoding='utf-8',index=False)
+
+    def add_file(self,filename):
+        self.files.append(filename)
 
 
 class tome_to_read(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
+        
         self.container = tk.Frame(self)
 
         self.container.pack(side="top", fill="both", expand=True)
@@ -65,10 +85,33 @@ class tome_to_read(tk.Tk):
             frame.grid(row = 0, column = 0, sticky="nsew")
 
         self.show_frame(start_page)
+        self.music_songs = music_file()
+        self.story = story_file()
+        
+        # pygame.mixer.music.load(self.music.files[3])
+        # pygame.mixer.music.play(loops=0)
     
     def show_frame(self,cont):
         frame = self.frames[cont]
         frame.tkraise()
+
+        
+    def upload_file(self,type_of_upload):
+        if type_of_upload == "Music":
+            file_type = [("Mp3 Files","*.mp3")]
+        if type_of_upload == "Story":
+            file_type = [("Pdf file","*.pdf"), ("text files","*.txt")]
+        file = askopenfile(parent=self,mode="rb", title=f'Choose {type_of_upload} to upload!', filetype=file_type)
+        if type_of_upload == "Music" and file:
+            # do something with the music file 
+            self.music_songs.add_file(file.name)
+            pygame.mixer.music.load(file.name)
+            pygame.mixer.music.play(loops=0)
+            self.music_songs.save_files()
+            
+        if type_of_upload == "Story" and file:
+            self.story.add_story(file)
+            self.story.save_files()
 
 class start_page(tk.Frame):
     def __init__(self,parent, controller):
@@ -79,7 +122,7 @@ class start_page(tk.Frame):
         labl.place(relx=0.5, rely=0.5, anchor= CENTER)
 
         # main logo creation, implementation, placing into frame
-        logo = Image.open("tome.png")
+        logo = Image.open("TomeToRead_Logo.png")
         logo = logo.resize((350,380))
         logo = ImageTk.PhotoImage(logo)
         logo_label = Label(self,image=logo)
@@ -126,8 +169,8 @@ class main_menu(tk.Frame):
             border_width=0,
             corner_radius=2,
             text="Read",
-            text_font = ("Raleway", 15),
-            command = lambda: create_book("Treasure Island",'on','',tk.Frame)
+            text_font = ("Raleway", 15)
+            # implement command once library page is done
         )
         library_btn.pack(anchor=CENTER)
         library_btn.place(relx=.45,rely=.7,anchor=CENTER)
@@ -162,7 +205,7 @@ class main_menu(tk.Frame):
         settings_btn.place(relx=.55, rely=.775, anchor=CENTER)
 
         # logo in main menu
-        logo = Image.open("tome.png")
+        logo = Image.open("TomeToRead_Logo.png")
         logo = logo.resize((350,380))
         logo = ImageTk.PhotoImage(logo)
         logo_label = Label(self,image=logo)
@@ -200,6 +243,7 @@ class upload_page(tk.Frame):
             self,
             textvariable=upload_text,
             command = lambda: upload_file(upload_text,self)
+
         )''' # need to experiment and see how uploading files should be stored/saved, pickle module might be a good option.
         # placeholder upload button
         upload_btn = customtkinter.CTkButton(
@@ -208,9 +252,9 @@ class upload_page(tk.Frame):
             height=50,
             border_width=0,
             corner_radius=2,
-            text="Upload Story",
+            text="Add to Library",
             text_font = ("Raleway", 15),
-            command = lambda: placeholder_upload_func(self,"Story")
+            command = lambda: controller.upload_file("Story")
         )
         
         upload_btn.place(relx=.3, rely=.75, anchor= CENTER)
@@ -223,11 +267,28 @@ class upload_page(tk.Frame):
             height=50,
             border_width=0,
             corner_radius=2,
-            text="Upload Music",
+            text="Add to Music",
             text_font = ("Raleway", 15),
-            command = lambda: placeholder_upload_func(self,"Music")
+            command = lambda: controller.upload_file("Music")
         )
         music_upload.place(relx=.7,rely=.75,anchor = CENTER)
+
+        # frame that showcases all the songs that are stored
+        # currently not working. cant access controller.music_songs.files
+        '''song_showcase = Frame(self,width=300,height=400,bg="grey")
+        song_showcase.place(relx=.7,rely=.4,anchor=CENTER)
+        
+        for song in controller.music_songs.files:
+            song_btn = customtkinter.CTkButton(
+                song_showcase,
+                width=300,
+                height=25,
+                text=song
+            )
+            song_btn.pack(song_showcase,fill="x")'''
+            
+        # song_scrollbar = Scrollbar(song_showcase,orient="vertical")
+        # song_scrollbar.pack(side="right",fill="y")
 
 class settings_page(tk.Frame):
     def __init__(self,parent, controller):
@@ -260,22 +321,17 @@ class settings_page(tk.Frame):
 '''
 Need to fix getting and inputting book_title, sound, and theme to pass as args into the init for ereader page to work.
 '''
-
-
-class Book:
-    def __init__(self,book_title, sound,theme,window):
-        #self.window = window
-        
-        self.window = window
+class ereader_page(tk.Frame):
+    def __init__(self,parent, controller, book_title, sound, theme):
+        tk.Frame.__init__(self,parent)
         self.book_title = book_title
         self.sound = sound
         self.theme = theme
-        if __name__ == "__main__":
-            self.main()
-
+        
+    
     def sound_switch(self):
-        if self.sound == 'on':
-            self.sound = 'off'
+        if self.sound == "on":
+            self.sound = "off"
         else:
             self.sound = 'on'
         return
@@ -319,7 +375,31 @@ class Book:
         else:
             prev_song[0] = song
             self.music(0,song)
-
+    
+    def diction(self,book):
+        '''
+        Basically this function creates dictionary
+        that links the pages of the story with an index number.
+        print(diction) will show you what I am referring too.
+        '''
+        
+        diction = {}
+        i = 0
+        for row in book_library['Title']:
+            diction[book_library['Title'][i]] = i
+            print(diction)
+            i+=1
+        index = diction[book]
+        # The line below is how the book is found in the dictionary. 
+        story = self.get_from_library(target_url = book_library['URL'][index]) 
+        if book != "The Raven":
+            story = self.split_function(story)
+        else:
+            print('working')
+        final_pages=story.split('---split---') #this is the page splitting decider.
+        # We will either need to write a function to change pdfs into txt files
+        return final_pages, book
+    
     def diction(self,book):
         '''
         Basically this function creates dictionary
@@ -396,14 +476,13 @@ class Book:
         canvas.config(highlightthickness=0)
 
     def menu_bar(self,window):
-        frame_4 = customtkinter.CTkFrame(width=80, height=500)
+        frame_4 = customtkinter.CTkFrame(master=window, width=80, height=500)
         frame_4.place(relx=.5, rely=.5,x=-520, anchor=CENTER)
         frame_4.configure(fg_color=("lightgray"))
         self.library_button(frame_4)
         self.find_button(frame_4)
         self.settings_button(frame_4)
         self.upload_button(frame_4)
-        frame_4.tkraise()
     
     def library_return(self):
         None
@@ -453,7 +532,7 @@ class Book:
         return
 
     def vol_slider(self,window):
-        slider = customtkinter.CTkSlider(
+        slider = customtkinter.CTkSlider(master=window,
         width=230,
         height=25,
         border_width=5.5,
@@ -515,33 +594,7 @@ class Book:
             i+=1
             n+=1
         return new_story
-
-    def main(self):
-        ''' 
-        Creates the window, and calls this diction function to get a key value pair linked by page number.
-        Currently only supports .txt files because pdf files lack the functionality 
-        to be manipulated and most domain stories use .txt or .epub not pdf.
-        '''
-        frame_4 = Frame(width=1200, height=800)
-        frame_4.place(relx=.5, rely=.5, anchor=CENTER)
-        frame_4.configure()
-        frame_4.tkraise()
-        
-        window = frame_4
-        window.counter = -1 #this is universal counter funtion that allows a user to traverse a story.
-        final_pages, title = self.diction(self.book_title)
-        self.vol_slider(window)
-        self.adv_button(window, final_pages, title)
-        self.back_button(window, final_pages, title) 
-        self.information()
-        self.music_information()
-        self.menu_bar(window)
-        #window.mainloop() #basically refreshes the window
-
-
-def create_book(title,two,three,frame):
-    Book(title,two,three,frame)
-
+    
 def main():
     # Main window that pops up
     app = tome_to_read()
@@ -556,6 +609,9 @@ def main():
     ereader_page.music_information()
     ereader_page.menu_bar(app)''' # fix up ereader class
     app.mainloop()
+    
+    
+    
     
 
 if __name__ == "__main__":
