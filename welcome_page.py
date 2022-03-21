@@ -8,6 +8,7 @@ DESCRIPTION: So far this is the welcome page. Probably will integrate most thing
 
 '''
 
+from mailbox import linesep
 from tkinter import *
 import tkinter as tk
 from tkinter.filedialog import askopenfile
@@ -17,6 +18,7 @@ import pandas as pd
 import requests
 import pygame
 import os
+import os.path
 
 pygame.mixer.init()
 
@@ -47,22 +49,34 @@ class story_file:
 
 class music_file:
     def __init__(self):
-
+        # checking to see if the tometoread.txt file exists
         self.files = []
-
-        path = "./ereadmp3"
-        os.chdir(path)
-        for file in os.listdir():
-            self.files.append(file)
-        os.chdir("...")
+        if os.path.exists("tometoread_music.txt"):
+            with open("tometoread_music.txt","r") as f:
+                for line in f:
+                    lines = line.splitlines()
+                    # print(line)
+                    if lines not in self.files:
+                        self.files.append(lines)
+        else:
+            path = "./ereadmp3"
+            curdir = os.getcwd()
+            os.chdir(path)
+            for file in os.listdir():
+                self.files.append(file)
+            os.chdir(curdir)
+        
         
     def save_files(self):
         self.song_dataframe = pd.DataFrame(self.files)
+        print(self.song_dataframe)
+        os.chdir("...")
         self.song_dataframe.to_csv('tometoread_music.txt',encoding='utf-8',index=False)
+        print("Songs have been saved.")
 
     def add_file(self,filename):
         self.files.append(filename)
-
+        print("Song has been added!")
 
 class tome_to_read(tk.Tk):
     
@@ -119,7 +133,7 @@ class tome_to_read(tk.Tk):
 class start_page(tk.Frame):
     def __init__(self,parent, controller):
         tk.Frame.__init__(self,parent)
-        img = ImageTk.PhotoImage(Image.open("start_page_background.jpg").resize((1200,800)), Image.ANTIALIAS)
+        img = ImageTk.PhotoImage(Image.open("extra_background.jpg").resize((1200,800)), Image.ANTIALIAS)
         labl = tk.Label(self, image=img)
         labl.img = img
         labl.place(relx=0.5, rely=0.5, anchor= CENTER)
@@ -141,10 +155,6 @@ class start_page(tk.Frame):
 class main_menu(tk.Frame):
     def __init__(self,parent, controller):
         tk.Frame.__init__(self,parent)        
-        label = Label(self, text="Welcome to Tome to Read!")
-        label.pack(padx=10,pady=10)
-        label.place(relx=.5, anchor=N)
-
         # button layout
         # library button, upload button
         # about us button, settings button
