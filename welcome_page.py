@@ -1,6 +1,6 @@
 '''
 TITLE: Tome To Read
-AUTHOR: James Thomason
+AUTHORS: James Thomason, Colby Chambers, Sarah Valine, and Cole Dryer
 DESCRIPTION: So far this is the welcome page. Probably will integrate most things from this file into the main file. \
             However, this is just the skeleton for the main page that displays the Logo as well as a welcome.
             The welcome screen itself will have the functionality of being able to click anywhere on screen to switch
