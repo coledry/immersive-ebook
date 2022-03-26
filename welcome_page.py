@@ -7,11 +7,10 @@ DESCRIPTION: So far this is the welcome page. Probably will integrate most thing
             over to the main screen. 
 '''
 
-from distutils.fancy_getopt import wrap_text
-from mailbox import linesep
 from tkinter import *
 import tkinter as tk
 from tkinter.filedialog import askopenfile
+from turtle import left
 from PIL import Image, ImageTk
 import customtkinter
 import pandas as pd
@@ -134,13 +133,13 @@ class tome_to_read(tk.Tk):
 class start_page(tk.Frame):
     def __init__(self,parent, controller):
         tk.Frame.__init__(self,parent)
-        #img = ImageTk.PhotoImage(Image.open("extra_background.jpg").resize((1200,800)), Image.ANTIALIAS)
-        #labl = tk.Label(self, image=img)
-        #labl.img = img
-        #labl.place(relx=0.5, rely=0.5, anchor= CENTER)
+        img = ImageTk.PhotoImage(Image.open("extra_background.jpg").resize((1200,800)), Image.ANTIALIAS)
+        labl = tk.Label(self, image=img)
+        labl.img = img
+        labl.place(relx=0.5, rely=0.5, anchor= CENTER)
 
         # main logo creation, implementation, placing into frame
-        logo = Image.open("tome.png")
+        logo = Image.open("TomeToRead_Logo.png")
         logo = logo.resize((350,380))
         logo = ImageTk.PhotoImage(logo)
         logo_label = Label(self,image=logo)
@@ -219,7 +218,7 @@ class main_menu(tk.Frame):
         settings_btn.place(relx=.55, rely=.775, anchor=CENTER)
 
         # logo in main menu
-        logo = Image.open("tome.png")
+        logo = Image.open("TomeToRead_Logo.png")
         logo = logo.resize((350,380))
         logo = ImageTk.PhotoImage(logo)
         logo_label = Label(self,image=logo)
@@ -350,13 +349,85 @@ class library_page(tk.Frame):
     def __init__(self,parent, controller):
         tk.Frame.__init__(self,parent)
         # Top portion of the settings page
-        settings_header = Frame(self, width= 14000, height=100, bg="white")
-        settings_header.grid(columnspan=3,rowspan=2,row=0)
-        settings_label = Label(self, text = "Library", font = ("Raleway", 32), fg="black", bg="white")
-        settings_label.place(relx=.5,y=50,anchor=CENTER)
-        # Placing button into the top section of settings page
+        settings_header = Frame(self, bg="white", width=1200,height=100)
+        settings_label = Label(settings_header, text = "Library", font = ("Raleway", 32), fg="black", bg="white")
+        settings_label.pack(anchor=CENTER,fill="none",expand=False)
         back_arrow_img = PhotoImage(file="ereadpngs/chevron-left.png")
         back_arrow_img = back_arrow_img.subsample(15)
+
+        back_arrow = customtkinter.CTkButton(
+        settings_header,
+        width=50,
+        height=30,
+        border_width=0,
+        corner_radius=2,
+        image=back_arrow_img,
+        text = '',
+        command= lambda: controller.show_frame(main_menu)
+        )
+        back_arrow.pack(side=LEFT,expand=False,pady=25,padx=25)
+        settings_header.pack(fill=BOTH)
+        
+        # Creating the canvas
+        scrollable_canvas = Canvas(self)
+        scrollable_canvas.pack(side=LEFT,fill=BOTH,expand=1)
+
+        # Creating a scrollbar
+        library_scrollbar = Scrollbar(self, orient = VERTICAL, command = scrollable_canvas.yview)
+        library_scrollbar.pack(side = RIGHT, fill = Y)
+
+        # Configuring Canvas with scrollbar
+        scrollable_canvas.configure(yscrollcommand=library_scrollbar.set)
+
+        # Binding configure
+        scrollable_canvas.bind('<Configure>', lambda e: scrollable_canvas.configure(scrollregion = scrollable_canvas.bbox("all")))
+
+        # Creating another frame inside canvas
+        canvas_frame = Frame(scrollable_canvas)
+
+        # adding new frame to window in canvas
+        scrollable_canvas.create_window((0,125), window=canvas_frame, anchor="nw")
+        
+        
+        def action(item):
+            return customtkinter.CTkButton(canvas_frame, width=200,height=300,border_width=2, 
+            corner_radius=8,text = item,text_color='black', command = lambda: func(item)
+            )
+
+        def func(item):
+            create_book(item,'on','',scrollable_canvas)
+
+        rows = 0
+        columns = 0
+        col_adv = 0
+        for i, item  in enumerate(book_library['Title']):
+            b = action(item)
+            #create_book(item,'on','',tk.Frame)
+            #btn2.pack(side="right")
+            # if line % 5 == 0:
+            
+            # First 3 buttons should be placed in (0,0),(0,1),(0,2)
+            b.grid(row = rows, column = columns + i, padx = 5, pady = 10)
+
+            # Then condition hits and then the next set of buttons should be placed in 
+            # (1,0),(1,1),(1,2), and so forth for every 3 or 4 buttons
+            if rows % 5 != 0:
+                rows = rows + 1
+                columns += 1
+                
+        '''else:
+                b.grid(row = i, column = line, padx = 5, pady = 10)
+            line += 1'''
+        
+        '''
+        scrollable_canvas = Canvas(self)
+        scrollable_canvas.pack(side=LEFT,fill=BOTH,expand=1)
+        
+        
+
+        scrollbar = Scrollbar(scrollable_canvas, orient='vertical')
+        scrollbar.place(anchor=E,bordermode=OUTSIDE, height=1200, width=25)
+        
         
         
         back_arrow = customtkinter.CTkButton(
@@ -371,14 +442,18 @@ class library_page(tk.Frame):
         )
         back_arrow.pack(side="left")
         back_arrow.place(x=50, y= 50, anchor=W)
+
+
         ''''''
         i=0
         x1 = -230
         y1 = -100
         line = 1
         my_str = tk.StringVar(self)
+
+
         def action(item):
-            return customtkinter.CTkButton(self, width=200,height=300,border_width=2, 
+            return customtkinter.CTkButton(scrollable_canvas, width=200,height=300,border_width=2, 
             corner_radius=8,text = item,text_color='black', command = lambda: func(item)
             )
 
@@ -400,7 +475,7 @@ class library_page(tk.Frame):
             i+=1
             #lib.append[b]
         print(lib)
-           # x1+=230
+           # x1+=230'''
 
 
 class Book:
@@ -691,6 +766,7 @@ def main():
     # Main window that pops up
     app = tome_to_read()
     app.title("Tome to Read")
+    app.resizable(False,False)
     app.geometry("1200x800")
     app.counter = -1
     '''final_pages, title = ereader_page.diction(ereader_page.book_title)
