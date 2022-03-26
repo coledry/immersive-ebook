@@ -7,6 +7,7 @@ DESCRIPTION: So far this is the welcome page. Probably will integrate most thing
             over to the main screen. 
 '''
 
+
 from tkinter import *
 import tkinter as tk
 from tkinter.filedialog import askopenfile
@@ -29,6 +30,12 @@ prev_song = ['none']
 library_map = {}
 
 class story_file:
+    '''
+    (James) My first thoughts are that I need to get all the story information from the user, and then use those and add it into the
+    dataframe that exists within the story_file object. OR ill just append it into the book_library dataframe above this class.
+    Not 100% sure. Brainstorming how to handle adding new stories (3/25/2022)
+    '''
+
     def __init__(self):
         self.story = []
         # path = "./ereadpngs"
@@ -46,19 +53,27 @@ class story_file:
     def add_story(self,filename):
         self.story.append(filename)
 
+class sounds_file:
+    def __init__(self):
+        self.sounds = []
+    
+    def save_songs(self):
+        pass
+
 
 class music_file:
     def __init__(self):
-        # checking to see if the tometoread.txt file exists
+        
         self.files = []
-        if os.path.exists("tometoread_music.txt"):
-            with open("tometoread_music.txt","r") as f:
-                for line in f:
-                    lines = line.splitlines()
-                    # print(line)
-                    if lines not in self.files:
-                        self.files.append(lines)
+        # checking to see if the tometoread.txt file exists
+        # if it exists, reads the file, and appends the name of each song or path to self.files
+        if os.path.exists("tometoread_music.csv"):
+            df = pd.read_csv('tometoread_music.csv')            
+            self.files = df['0'].tolist()
+            
         else:
+            # If tometoread_music.txt does not exist, reads the ereadmp3 folder
+            # and grabs all the names and appends them into self.files
             path = "./ereadmp3"
             curdir = os.getcwd()
             os.chdir(path)
@@ -68,15 +83,41 @@ class music_file:
         
         
     def save_files(self):
+        # creates a dataframe from the self.files list
         self.song_dataframe = pd.DataFrame(self.files)
+
+        # test print to see contents
         print(self.song_dataframe)
+
+        # changes the directory back into the main folder
         os.chdir("...")
-        self.song_dataframe.to_csv('tometoread_music.txt',encoding='utf-8',index=False)
+
+        # check to see if tometoread.csv exists
+        if not os.path.exists("tometoread_music.csv"):
+            self.song_dataframe.to_csv("tometoread_music.csv", header='column_names', index=False)
+        else:
+        # If tometoread.csv exists, simply appends the NEWEST contents of self.song_dataframe
+
+            # Making a Dataframe from tometoread_music for checking purposes
+            df_check = pd.read_csv('tometoread_music.csv')['0'].tolist()
+
+            # Loop over each song in self.files
+            #   if song not in df_check
+            #       add the NEW song into a separate structure
+            # Add separate structure into the csv file
+            self.new_songs = []
+            for song in self.files:
+                if song not in df_check:
+                    self.new_songs.append(song)
+            self.new_songs_df = pd.DataFrame(self.new_songs)
+            self.new_songs_df.to_csv('tometoread_music.csv',mode = 'a', header=False, index= False)
         print("Songs have been saved.")
 
     def add_file(self,filename):
         self.files.append(filename)
         print("Song has been added!")
+
+
 
 class tome_to_read(tk.Tk):
     
@@ -100,8 +141,6 @@ class tome_to_read(tk.Tk):
 
         self.show_frame(start_page)
 
-        self.mp3s = music_file()
-        self.story = story_file()
         
         # pygame.mixer.music.load(self.music.files[3])
         # pygame.mixer.music.play(loops=0)
@@ -114,21 +153,28 @@ class tome_to_read(tk.Tk):
         return self.mp3s
         
     def upload_file(self,type_of_upload):
-        if type_of_upload == "Music":
+        if type_of_upload in ["Music","Sound"]:
             file_type = [("Mp3 Files","*.mp3")]
         if type_of_upload == "Story":
             file_type = [("Pdf file","*.pdf"), ("text files","*.txt")]
         file = askopenfile(parent=self,mode="rb", title=f'Choose {type_of_upload} to upload!', filetype=file_type)
+
+        # Handles adding Music files
         if type_of_upload == "Music" and file:
             # do something with the music file 
             self.mp3s.add_file(file.name)
             pygame.mixer.music.load(file.name)
             pygame.mixer.music.play(loops=0)
             self.mp3s.save_files()
-            
+        
+        # Handles adding Story files
         if type_of_upload == "Story" and file:
             self.story.add_story(file)
             self.story.save_files()
+
+        # Handles adding Sound files 
+        if type_of_upload == "Sound" and file:
+            pass
 
 class start_page(tk.Frame):
     def __init__(self,parent, controller):
@@ -231,7 +277,7 @@ class upload_page(tk.Frame):
         # top portion of the user upload page
         upload_header = Frame(self, width = 10000, height = 100, bg = "white")
         upload_header.grid(columnspan=3,rowspan=2,row=0)
-        upload_label = Label(self, text = "Write in your own story and sound!", font = ("Raleway", 32), fg="black", bg="white")
+        upload_label = Label(self, text = "Add in your own story, music, or sound!", font = ("Raleway", 32), fg="black", bg="white")
         upload_label.place(relx=.5,y=50,anchor=CENTER)
         # Placing button into the top section of settings page
         back_arrow_img = PhotoImage(file="ereadpngs/chevron-left.png")
@@ -262,7 +308,7 @@ class upload_page(tk.Frame):
             command = lambda: controller.upload_file("Story")
         )
         
-        upload_btn.place(relx=.3, rely=.75, anchor= CENTER)
+        upload_btn.place(relx=.3, rely=.5, anchor= CENTER)
     
         # Upload Music button, only allows upload of mp3 files
         music_upload = customtkinter.CTkButton(
@@ -275,7 +321,19 @@ class upload_page(tk.Frame):
             text_font = ("Raleway", 15),
             command = lambda: controller.upload_file("Music")
         )
-        music_upload.place(relx=.7,rely=.75,anchor = CENTER)
+        music_upload.place(relx=.7,rely=.5,anchor = CENTER)
+
+        # Upload Sound button, only allows upload of mp3 files
+        sound_upload = customtkinter.CTkButton(
+            self,
+            width=100,
+            height=50,
+            border_width=0,
+            corner_radius=2,
+            text="Add to Sounds",
+            text_font = ("Raleway", 15),
+            command = lambda: controller.upload_file("Sound")
+        ).place(relx=.5,rely=.5,anchor=CENTER)
 
         # frame that showcases all the songs that are stored
         # currently not working. cant access controller.music_songs.files
@@ -283,8 +341,6 @@ class upload_page(tk.Frame):
         songlistbox.place(relx=.7,rely=.4,anchor=CENTER)
         songlistbox.insert(controller.get_music().files)'''
             
-        # song_scrollbar = Scrollbar(song_showcase,orient="vertical")
-        # song_scrollbar.pack(side="right",fill="y")
 
 class settings_page(tk.Frame):
     def __init__(self,parent, controller):
