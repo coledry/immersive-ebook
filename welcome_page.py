@@ -29,13 +29,13 @@ audio_map = pd.read_csv(url)
 prev_song = ['none']
 library_map = {}
 
+
 class story_file:
     '''
-    (James) My first thoughts are that I need to get all the story information from the user, and then use those and add it into the
-    dataframe that exists within the story_file object. OR ill just append it into the book_library dataframe above this class.
-    Not 100% sure. Brainstorming how to handle adding new stories (3/25/2022)
+    This will have be a more unique class compared to sounds_file and music_file due to the fact that we're planning to 
+    let the user assign songs to the book. I'm assuming we'll need to mess around with the dataframes (book_library, audio_map) somehow
+    to fully configure it
     '''
-
     def __init__(self):
         self.story = []
         # path = "./ereadpngs"
@@ -56,11 +56,41 @@ class story_file:
 class sounds_file:
     def __init__(self):
         self.sounds = []
-    
+
+        if os.path.exists("tometoread_sounds.csv"):
+            df = pd.read_csv("tometoread_sounds.csv")
+            self.sounds = df['0'].tolist()
+
+        else:
+            path = "./ereadSounds"
+            curdir = os.getcwd()
+            os.chdir(path)
+            for file in os.listdir():
+                self.sounds.append(file)
+            os.chdir(curdir)
+
     def save_songs(self):
-        pass
+        self.sound_df = pd.DataFrame(self.sounds)
 
+        os.chdir("...")
 
+        if not os.path.exists("tometoread_sounds.csv"):
+            self.sound_df.to_csv("tometoread_sounds.csv", header='column_names', index=False)
+        else:
+            df_check = pd.read_csv('tometoread_music.csv')['0'].tolist()
+
+            self.new_sounds = []
+            for sound in self.sounds:
+                if sound not in df_check:
+                    self.new_sounds.append(sound)
+            self.new_sounds_df = pd.DataFrame(self.new_sounds)
+            self.new_sounds_df.to_csv("tometoread_sounds.csv", mode='a', header=False, index=False)
+        print("Sounds have been saved")
+
+    def add_sound(self, filename):
+        self.sounds.append(filename)
+        print("Sound has been saved!")
+    
 class music_file:
     def __init__(self):
         
@@ -85,9 +115,6 @@ class music_file:
     def save_files(self):
         # creates a dataframe from the self.files list
         self.song_dataframe = pd.DataFrame(self.files)
-
-        # test print to see contents
-        print(self.song_dataframe)
 
         # changes the directory back into the main folder
         os.chdir("...")
@@ -162,10 +189,10 @@ class tome_to_read(tk.Tk):
         # Handles adding Music files
         if type_of_upload == "Music" and file:
             # do something with the music file 
-            self.mp3s.add_file(file.name)
+            music.add_file(file.name)
             pygame.mixer.music.load(file.name)
             pygame.mixer.music.play(loops=0)
-            self.mp3s.save_files()
+            music.save_files()
         
         # Handles adding Story files
         if type_of_upload == "Story" and file:
@@ -336,11 +363,12 @@ class upload_page(tk.Frame):
         ).place(relx=.5,rely=.5,anchor=CENTER)
 
         # frame that showcases all the songs that are stored
-        # currently not working. cant access controller.music_songs.files
-        '''songlistbox = Listbox(self,width=100,height=25,background="grey")
-        songlistbox.place(relx=.7,rely=.4,anchor=CENTER)
-        songlistbox.insert(controller.get_music().files)'''
-            
+        all_songs = Label(self,font=("Raleway",16), text = "All songs", anchor=CENTER)
+        all_songs.place(relx=.66,rely=.15)
+        songlistbox = Listbox(self,width=25,height=10,background="grey", selectmode=BROWSE)
+        songlistbox.place(relx=.7,rely=.3,anchor=CENTER)
+        for i, song in enumerate(music.files):
+            songlistbox.insert(i,song)
 
 class settings_page(tk.Frame):
     def __init__(self,parent, controller):
@@ -814,6 +842,9 @@ class Book:
         self.menu_bar(window)
         #window.mainloop() #basically refreshes the window
 
+music = music_file()
+stories = story_file()
+sounds = sounds_file()
 
 def create_book(title,two,three,frame):
     Book(title,two,three,frame)
@@ -834,10 +865,5 @@ def main():
     ereader_page.menu_bar(app)''' # fix up ereader class
     app.mainloop()
     
-    
-    
-    
-    
-
 if __name__ == "__main__":
     main()
