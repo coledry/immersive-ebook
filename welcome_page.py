@@ -34,9 +34,11 @@ class story_file:
     '''
     This will have be a more unique class compared to sounds_file and music_file due to the fact that we're planning to 
     let the user assign songs to the book. I'm assuming we'll need to mess around with the dataframes (book_library, audio_map) somehow
-    to fully configure it
+    to fully configure it. creating a new entry within the dataframe would also need Author, Genre, Description.... etc, the sidebar content essentially
+    from the ereader page to fully display it all
     '''
     def __init__(self):
+        columns = ['URL','Title','Author','Year Published','Provider','Views','Genre','Cover']
         self.story = []
         # path = "./ereadpngs"
         '''os.chdir(path)
@@ -68,8 +70,9 @@ class sounds_file:
             for file in os.listdir():
                 self.sounds.append(file)
             os.chdir(curdir)
+            self.save_sounds()
 
-    def save_songs(self):
+    def save_sounds(self):
         self.sound_df = pd.DataFrame(self.sounds)
 
         os.chdir("...")
@@ -95,14 +98,14 @@ class music_file:
     def __init__(self):
         
         self.files = []
-        # checking to see if the tometoread.txt file exists
+        # checking to see if the tometoread.csv file exists
         # if it exists, reads the file, and appends the name of each song or path to self.files
         if os.path.exists("tometoread_music.csv"):
             df = pd.read_csv('tometoread_music.csv')            
             self.files = df['0'].tolist()
             
         else:
-            # If tometoread_music.txt does not exist, reads the ereadmp3 folder
+            # If tometoread_music.csv does not exist, reads the ereadmp3 folder
             # and grabs all the names and appends them into self.files
             path = "./ereadmp3"
             curdir = os.getcwd()
@@ -370,6 +373,13 @@ class upload_page(tk.Frame):
         for i, song in enumerate(music.files):
             songlistbox.insert(i,song)
 
+        all_sounds = Label(self,font=("Raleway",16), text="All Sounds", anchor=CENTER)
+        all_sounds.place(relx=.45, rely=.15)
+        soundlistbox = Listbox(self,width=25, height= 10, background="grey", selectmode=BROWSE)
+        soundlistbox.place(relx=.5,rely=.3, anchor=CENTER)
+        for i,song in enumerate(soundFiles.sounds):
+            soundlistbox.insert(i,song)
+
 class settings_page(tk.Frame):
     def __init__(self,parent, controller):
         tk.Frame.__init__(self,parent)
@@ -436,13 +446,14 @@ class library_page(tk.Frame):
         settings_header = Frame(self, bg="white", width=1200,height=100)
         settings_label = Label(settings_header, text = "Library", font = ("Raleway", 32), fg="black", bg="white")
         settings_label.pack(anchor=CENTER,fill="none",expand=False)
+        settings_label.place(relx=.5,y=50,anchor=CENTER)
         back_arrow_img = PhotoImage(file="ereadpngs/chevron-left.png")
         back_arrow_img = back_arrow_img.subsample(15)
 
         back_arrow = customtkinter.CTkButton(
         settings_header,
         width=50,
-        height=30,
+        height=50,
         border_width=0,
         corner_radius=2,
         image=back_arrow_img,
@@ -454,7 +465,9 @@ class library_page(tk.Frame):
         
         # Creating the canvas
         scrollable_canvas = Canvas(self)
-        scrollable_canvas.pack(side=LEFT,fill=BOTH,expand=1)
+        scrollable_canvas.config(width=950, height = 4000)
+        scrollable_canvas.place(relx=.5)
+        scrollable_canvas.pack(side=LEFT,fill="y",expand=1)
 
         # Creating a scrollbar
         library_scrollbar = Scrollbar(self, orient = VERTICAL, command = scrollable_canvas.yview)
@@ -471,12 +484,22 @@ class library_page(tk.Frame):
 
         # adding new frame to window in canvas
         scrollable_canvas.create_window((0,125), window=canvas_frame, anchor="nw")
-        
-        
+
         def action(item):
+            temp = book_library.loc[book_library['Title'] == item]
+            #temp['Cover'].item()
+            logo = Image.open(temp['Cover'].item())
+            logo = logo.resize((170,280))
+            logo = ImageTk.PhotoImage(logo)
+            #logo_label = Label(image=logo)
+            #logo_label.image = logo
+            #logo_label.place(relx=.5, rely=.5, anchor= CENTER)
+            
             return customtkinter.CTkButton(canvas_frame, width=200,height=300,border_width=2, 
-            corner_radius=8,text = item,text_color='black', command = lambda: func(item)
+            corner_radius=8,image = logo, text = '',command = lambda: func(item), fg_color = "gray"
             )
+        def name(item):
+            return customtkinter.CTkLabel(canvas_frame, width=196, height=30,text=item, text_font= ("Railway",12),corner_radius=0,fg_color='gray')
 
         def func(item):
             create_book(item,'on','',scrollable_canvas)
@@ -486,80 +509,80 @@ class library_page(tk.Frame):
         col_adv = 0
         for i, item  in enumerate(book_library['Title']):
             b = action(item)
+            c = name(item)
             #create_book(item,'on','',tk.Frame)
             #btn2.pack(side="right")
             # if line % 5 == 0:
             
             # First 3 buttons should be placed in (0,0),(0,1),(0,2)
-            b.grid(row = rows, column = columns + i, padx = 5, pady = 10)
+            b.grid(row = rows, column = columns, padx = 20, pady = 10)
 
+            c.grid(row = rows, column = columns)
             # Then condition hits and then the next set of buttons should be placed in 
             # (1,0),(1,1),(1,2), and so forth for every 3 or 4 buttons
-            if rows % 5 != 0:
-                rows = rows + 1
-                columns += 1
+            print("("+str(rows)+","+str(columns)+")")
+            if columns % 3 == 0 and columns > 0:
+                rows += 1
+                columns=-1
+            if columns != 3:
+                columns+=1
                 
-        '''else:
-                b.grid(row = i, column = line, padx = 5, pady = 10)
-            line += 1'''
+
+
+        '''
+        ****please do not delete we may need later****
+        def action(item):
+            temp = book_library.loc[book_library['Title'] == item]
+            #temp['Cover'].item()
+            logo = Image.open(temp['Cover'].item())
+            logo = logo.resize((170,280))
+            logo = ImageTk.PhotoImage(logo)
+            #logo_label = Label(image=logo)
+            #logo_label.image = logo
+            #logo_label.place(relx=.5, rely=.5, anchor= CENTER)
+            return customtkinter.CTkButton(canvas_frame, width=200,height=300,border_width=2, 
+            corner_radius=8,image = logo, text = '',command = lambda: func(item), fg_color = "gray"
+            ), customtkinter.CTkLabel(canvas_frame, width=200, height=20,text=item, text_font= ("Railway",12))
+        def func(item):
+            create_book(item,'on','green',self)
+        lib = []
+        def buttons():
+            i=0
+            x1 = -350
+            y1 = 200
+            line = 1
+            
+            for item in book_library['Title']:
+                b,book_title = action(item)
+                #create_book(item,'on','',tk.Frame)
+                #btn2.pack(side="right")
+                if line % 4 == 0:
+                    b.place(relx=.5,x=x1,y=y1, anchor=CENTER)
+                    book_title.place(relx=.5,x=x1,y=y1+160, anchor=CENTER)
+                    #book_title.pack(self)
+                    y1+=340
+                    x1= -350
+                else:
+                    b.place(relx=.5,x=x1,y=y1, anchor=CENTER)
+                    book_title.place(relx=.5, rely=.5,x=x1,y=y1+160, anchor=CENTER)
+                    #book_title.pack(self)
+                    x1+=230
+                line+=1
+                i+=1
+                #lib.append[b]
+            # x1+=230
+        buttons()
         
         '''
-        scrollable_canvas = Canvas(self)
-        scrollable_canvas.pack(side=LEFT,fill=BOTH,expand=1)
-        
-        
-
-        scrollbar = Scrollbar(scrollable_canvas, orient='vertical')
-        scrollbar.place(anchor=E,bordermode=OUTSIDE, height=1200, width=25)
-        
-        
-        
-        back_arrow = customtkinter.CTkButton(
-        settings_header,
-        width=50,
-        height=30,
-        border_width=0,
-        corner_radius=2,
-        image=back_arrow_img,
-        text = '',
-        command= lambda: controller.show_frame(main_menu)
-        )
-        back_arrow.pack(side="left")
-        back_arrow.place(x=50, y= 50, anchor=W)
-
-
-        ''''''
-        i=0
-        x1 = -230
-        y1 = -100
-        line = 1
-        my_str = tk.StringVar(self)
-
-
-        def action(item):
-            return customtkinter.CTkButton(scrollable_canvas, width=200,height=300,border_width=2, 
-            corner_radius=8,text = item,text_color='black', command = lambda: func(item)
+        '''
+        library_page_tracker+=8
+        next_page = customtkinter.CTkButton(self, width=40,height=40,border_width=2, 
+            corner_radius=8,text='>',text_color='black', command = lambda: buttons(library_page_tracker)
             )
-
-        def func(item):
-            create_book(item,'on','',self)
-        lib = []
-        for item in book_library['Title']:
-            b = action(item)
-            #create_book(item,'on','',tk.Frame)
-            #btn2.pack(side="right")
-            if line % 3 == 0:
-                b.place(relx=.5, rely=.5,x=x1,y=y1, anchor=CENTER)
-                y1+=320
-                x1= -230
-            else:
-                b.place(relx=.5, rely=.5,x=x1,y=y1, anchor=CENTER)
-                x1+=230
-            line+=1
-            i+=1
-            #lib.append[b]
-        print(lib)
-           # x1+=230'''
+        next_page.place(rely = .5 , relx = .9)
+        '''
+        
+        
 
 
 class Book:
@@ -683,7 +706,9 @@ class Book:
         '''
         Information on book
         '''
-        canvas = customtkinter.CTkLabel(width=225, height=500,text="Title:\n"+self.book_title+"\nAuthor:\n\nYear:\n\nInfo:\n\n")
+        temp = book_library.loc[book_library['Title'] == self.book_title]
+        #temp['Cover'].item()
+        canvas = customtkinter.CTkLabel(width=225, height=500,text="Title:\n"+self.book_title+"\n\nAuthor:\n"+temp['Author'].item()+"\n\nYear:\n"+ str(temp['Year Published'].item())+"\n\nGenre:\n"+str(temp['Genre'].item())+"\n", text_font= ("Railway",22))
         canvas.place(relx=.5, rely=.5,x=465,y=-100, anchor=CENTER)
         canvas.config(highlightthickness=0)
 
@@ -697,7 +722,7 @@ class Book:
 
     def menu_bar(self,window):
         frame_4 = customtkinter.CTkFrame(width=80, height=500)
-        frame_4.place(relx=.5, rely=.5,x=-520, anchor=CENTER)
+        frame_4.place(rely=.5, anchor=W)
         frame_4.configure(fg_color=("lightgray"))
         self.library_button(frame_4)
         self.find_button(frame_4)
@@ -837,14 +862,31 @@ class Book:
         self.vol_slider(window)
         self.adv_button(window, final_pages, title)
         self.back_button(window, final_pages, title) 
+        self.music(0,'none')
+        canvas = Canvas(bg="dark gray", width=595, height=770)
+        canvas.place(relx=.5, rely=.5,x=-60, anchor=CENTER)
+        canvas.config(highlightthickness=0)
+        temp = book_library.loc[book_library['Title'] == self.book_title]
+        logo = Image.open(temp['Cover'].item())
+        logo = logo.resize((595,770))
+        logo = ImageTk.PhotoImage(logo)
+        logo_label = Label(canvas,image=logo)
+        logo_label.image = logo
+        logo_label.place(relx=.5, rely=.5, anchor= CENTER)
+        #canvas.create_text(300, 400, text="Good Luck On Your Fictional Journey!", fill="white", font=('Times 25'),width=430)
+        #canvas.create_text(300, 550, text="Music by Eric Matyas\nwww.soundimage.org", fill="white", font=('Times 10'),width=430)
         self.information()
         self.music_information()
         self.menu_bar(window)
         #window.mainloop() #basically refreshes the window
 
+
+def create_book(title,two,three,frame):
+    Book(title,two,three,frame)
+
 music = music_file()
 stories = story_file()
-sounds = sounds_file()
+soundFiles = sounds_file()
 
 def create_book(title,two,three,frame):
     Book(title,two,three,frame)
