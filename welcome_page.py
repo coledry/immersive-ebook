@@ -826,7 +826,7 @@ class Book:
         self.music_information(window)
         self.information(pages_total)
         text = canvas.create_text(30, 20, text=str(window.counter) if moderator == False else self.thanks(), fill="black", font=('Times 15'),width=510, )
-        text = canvas.create_text(300, 400, text=final_pages[window.counter] if moderator == False else self.thanks(), fill="black", font=('Times 15'),width=530, )
+        text = canvas.create_text(300, 400, text=final_pages[window.counter] if moderator == False else self.thanks(), fill="black", font=('Times 15'),width=530,anchor=CENTER )
 
     def thanks(self):
         '''
