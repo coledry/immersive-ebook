@@ -37,32 +37,30 @@ class story_file:
     '''
     
     '''
-    def __init__(self):
-        # columns = ['URL','Title','Author','Year Published','Provider','Views','Genre','Cover']
-        self.story = []
+    def __init__(self, book_library):
+        columns = ['URL','Title','Author','Year Published','Provider','Views','Genre','Cover']
         self.userStory = []
         
+        # Handling if the user story file already exists within the ereadCSV folder
         if os.path.exists("ereadCSV/tometoread_Stories.csv"):
-            df = pd.read_csv("ereadCSV/tometoread_Stories.csv")
-            self.story = df
-        else:
-            path = "./ereadStories"
-            self.curdir = os.getcwd()
-            os.chdir(path)
-            for file in os.listdir():
-                if not file.startswith("C:"):
-                    self.story.append("ereadStories/" + file)
-                else:
-                    self.userStory.append(file)
-            self.story = self.story + self.userStory
-            os.chdir(self.curdir)
+            df = pd.read_csv("ereadCSV/tometoread_Stories.csv", header=None)
+            self.userStory = df
+            # print(self.userStory)
+            for index, row in self.userStory.iterrows():
+                book_library.loc[len(book_library.index)] = [row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7]]
+                
+            print(book_library)
+            # book_library.loc[len(book_library.index)] = [book_path,title,author,year, provider, views, genre, book_cover]
+
+    def set_user_story(self):
+        self.userStory = book_library.loc[book_library['Provider'] == "User"]
         
     def save_stories(self):
-
-        pass
-
-    def add_story(self,filename):
-        self.story.append(filename)
+        self.userStory.to_csv("ereadCSV/tometoread_Stories.csv", header=False,index=False)
+        print("Story has been saved to csv file!")
+        
+    '''def add_story(self,filename):
+        self.story.append(filename)'''
 
 class sounds_file:
     def __init__(self):
@@ -381,7 +379,7 @@ class upload_page(tk.Frame):
         genre_entry_label = Label(self, text="Genre:", font=("Raleway", 10))
         genre_entry_label.place(relx=.2, rely=.3)
 
-        self.cover_image_path = "check"
+        self.cover_image_path = "None Given"
         self.story_file_path = "fileCheck"
 
         cover_image_upload = customtkinter.CTkButton(
@@ -466,20 +464,28 @@ class upload_page(tk.Frame):
             story_success.place(relx=.27,rely=.455)
             print(f'New Story is: {self.story_file_path}')
     
-    def submit_story(self,book_path,book_cover="None given"):
-        provider = "User"
-        views = 0
-        print(book_path) 
-        title = self.book_title.get()
-        author = self.author_var.get()
-        year = self.year_pub_var.get()
-        genre = self.genre_var.get()
-        # add new row with information
-        book_library.loc[len(book_library.index)] = [book_path,title,author,year, provider, views, genre, book_cover]
-        story_add_success = Label(self,text="Story has been added!", font=("Raleway",10))
-        story_add_success.place(relx=.2,rely=.58)
-        # make call to update library page with new book
-        print(book_library)
+    def submit_story(self,book_path="fileCheck",book_cover="None Given"):
+        if book_path == "fileCheck":
+            story_add_success_or_fail = Label(self, text="Please upload a story file to add new story.", font=("Raleway", 10), fg="red")
+            story_add_success_or_fail.place(relx=.2,rely=.58)
+        else:
+            if book_cover == "None Given":
+                book_cover = "ereadpngs/tome2.png"
+            provider = "User"
+            views = 0
+            print(book_path) 
+            title = self.book_title.get()
+            author = self.author_var.get()
+            year = self.year_pub_var.get()
+            genre = self.genre_var.get()
+            # add new row with information
+            book_library.loc[len(book_library.index)] = [book_path,title,author,year, provider, views, genre, book_cover]
+            story_add_success_or_fail = Label(self,text="Story has been added!", font=("Raleway",10))
+            story_add_success_or_fail.place(relx=.22,rely=.58)
+            # make call to update library page with new book
+            stories.set_user_story()
+            stories.save_stories()
+            print(book_library)
         
 class settings_page(tk.Frame):
     def __init__(self,parent, controller):
@@ -658,7 +664,7 @@ class Book:
         self.theme = theme
         self.status = 'play'
         if __name__ == "__main__":
-            self.main()
+            self.main_book_run()
 
     def sound_switch(self,var):
         if var == "off":
@@ -826,7 +832,7 @@ class Book:
         self.music_information(window)
         self.information(pages_total)
         text = canvas.create_text(30, 20, text=str(window.counter) if moderator == False else self.thanks(), fill="black", font=('Times 15'),width=510, )
-        text = canvas.create_text(300, 400, text=final_pages[window.counter] if moderator == False else self.thanks(), fill="black", font=('Times 15'),width=530,anchor=CENTER )
+        text = canvas.create_text(300, 400, text=final_pages[window.counter] if moderator == False else self.thanks(), fill="black", font=('Times 15'),width=530, anchor=CENTER)
 
     def thanks(self):
         '''
@@ -1039,7 +1045,7 @@ class Book:
 
         return new_story
 
-    def main(self):
+    def main_book_run(self):
         ''' 
         Creates the window, and calls this diction function to get a key value pair linked by page number.
         Currently only supports .txt files because pdf files lack the functionality 
@@ -1083,7 +1089,7 @@ def create_book(title,two,three,frame):
     Book(title,two,three,frame)
 
 music = music_file()
-stories = story_file()
+stories = story_file(book_library)
 soundFiles = sounds_file()
 
 def main():
