@@ -38,19 +38,15 @@ class story_file:
     
     '''
     def __init__(self, book_library):
-        columns = ['URL','Title','Author','Year Published','Provider','Views','Genre','Cover']
+        
         self.userStory = []
         
         # Handling if the user story file already exists within the ereadCSV folder
         if os.path.exists("ereadCSV/tometoread_Stories.csv"):
             df = pd.read_csv("ereadCSV/tometoread_Stories.csv", header=None)
             self.userStory = df
-            # print(self.userStory)
             for index, row in self.userStory.iterrows():
                 book_library.loc[len(book_library.index)] = [row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7]]
-                
-            print(book_library)
-            # book_library.loc[len(book_library.index)] = [book_path,title,author,year, provider, views, genre, book_cover]
 
     def set_user_story(self):
         self.userStory = book_library.loc[book_library['Provider'] == "User"]
@@ -59,8 +55,6 @@ class story_file:
         self.userStory.to_csv("ereadCSV/tometoread_Stories.csv", header=False,index=False)
         print("Story has been saved to csv file!")
         
-    '''def add_story(self,filename):
-        self.story.append(filename)'''
 
 class sounds_file:
     def __init__(self):
@@ -166,6 +160,9 @@ class music_file:
 class tome_to_read(tk.Tk):
     
     def __init__(self, *args, **kwargs):
+        pygame.mixer.music.load("main_bg_music.mp3")
+        pygame.mixer.music.set_volume(.02)
+        pygame.mixer.music.play(loops=0)
         tk.Tk.__init__(self, *args, **kwargs)
         
         self.container = tk.Frame(self)
@@ -221,6 +218,9 @@ class tome_to_read(tk.Tk):
             # ]
             soundFiles.save_sounds()
 
+    def mute_bg_music(self):
+        pygame.mixer.music.pause()
+        
 class start_page(tk.Frame):
     def __init__(self,parent, controller):
         tk.Frame.__init__(self,parent)
@@ -315,6 +315,17 @@ class main_menu(tk.Frame):
         logo_label = Label(self,image=logo)
         logo_label.image = logo
         logo_label.place(relx=.5, rely=.3, anchor= CENTER)
+
+        mute_btn = customtkinter.CTkButton(
+            self,
+            width=25,
+            height=25,
+            border_width=0,
+            corner_radius=2,
+            text="Mute Music",
+            command = lambda: controller.mute_bg_music()
+        )
+        mute_btn.place(relx=0,rely=.97)
 
 class upload_page(tk.Frame):
     def __init__(self,parent, controller):
@@ -447,6 +458,17 @@ class upload_page(tk.Frame):
         for i,song in enumerate(soundFiles.sounds):
             soundlistbox.insert(i,song)
 
+        mute_btn = customtkinter.CTkButton(
+            self,
+            width=25,
+            height=25,
+            border_width=0,
+            corner_radius=2,
+            text="Mute Music",
+            command = lambda: controller.mute_bg_music()
+        )
+        mute_btn.place(relx=0,rely=.97)
+
     def upload_book_cover(self):
         book_cover = askopenfilename(filetypes=[('image files','.png'),('image files','.jpg')])
 
@@ -547,6 +569,17 @@ class settings_page(tk.Frame):
         fsize_lbl = Label(sec3, text="Font Size:", font = ("Raleway", 12), fg="black", bg="white")
         fsize_lbl.place(relx=.2, rely=.6,anchor=CENTER)
 
+        mute_btn = customtkinter.CTkButton(
+            self,
+            width=25,
+            height=25,
+            border_width=0,
+            corner_radius=2,
+            text="Mute Music",
+            command = lambda: controller.mute_bg_music()
+        )
+        mute_btn.place(relx=0,rely=.97)
+
 class library_page(tk.Frame):
     def __init__(self,parent, controller):
         tk.Frame.__init__(self,parent)
@@ -605,12 +638,28 @@ class library_page(tk.Frame):
 
         # Creating another frame inside canvas
         self.canvas_frame = Frame(self.scrollable_canvas)
+        self.canvas_frame.bind("<Configure>", self.reset_scrollregion)
 
         # adding new frame to window in canvas
         self.scrollable_canvas.create_window((0,125), window=self.canvas_frame, anchor="nw")
 
         # Renders all books into the canvas
+        
         self.render_books()
+
+        mute_btn = customtkinter.CTkButton(
+            self,
+            width=25,
+            height=25,
+            border_width=0,
+            corner_radius=2,
+            text="Mute Music",
+            command = lambda: controller.mute_bg_music()
+        )
+        mute_btn.place(relx=0,rely=.97)
+    
+    def reset_scrollregion(self, event):
+        self.scrollable_canvas.configure(scrollregion=self.scrollable_canvas.bbox("all"))
 
     def action(self, item):
         temp = book_library.loc[book_library['Title'] == item]
