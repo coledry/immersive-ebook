@@ -33,6 +33,9 @@ prev_song = ['none']
 library_map = {}
 volume=50
 
+
+# parse tree or dictionary points to the
+
 class story_file:
     '''
     
@@ -160,9 +163,9 @@ class music_file:
 class tome_to_read(tk.Tk):
     
     def __init__(self, *args, **kwargs):
-        pygame.mixer.music.load("main_bg_music.mp3")
-        pygame.mixer.music.set_volume(.02)
-        pygame.mixer.music.play(loops=0)
+        '''pygame.mixer.music.load("main_bg_music.mp3")
+        pygame.mixer.music.set_volume(.05)
+        pygame.mixer.music.play(loops=0)'''
         tk.Tk.__init__(self, *args, **kwargs)
         
         self.container = tk.Frame(self)
@@ -1014,6 +1017,7 @@ class Book:
             print(val)
             pygame.mixer.music.set_volume(val)
             return
+
         slider = customtkinter.CTkSlider(
         width=230,
         height=25,
