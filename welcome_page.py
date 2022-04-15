@@ -1,4 +1,4 @@
-'''
+''''
 TITLE: Tome To Read
 AUTHORS: James Thomason, Colby Chambers, Sarah Valine, and Cole Dryer
 '''
@@ -906,6 +906,8 @@ class Book:
         Currently the last page of the book. It just prints thank you.
         '''
         self.music(0,'none')
+        if self.canvas_3 != None:
+            self.canvas_3.destroy()
         self.canvas_3 = Canvas(bg="dark gray", width=595, height=770)
         self.canvas_3.place(relx=.5, rely=.5,x=-60, anchor=CENTER)
         self.canvas_3.config(highlightthickness=0)
@@ -1204,8 +1206,4 @@ def main():
     
 if __name__ == "__main__":
     main()
-
-
-
-
 
