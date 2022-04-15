@@ -715,6 +715,19 @@ class Book:
         self.sound = sound
         self.theme = theme
         self.status = 'play'
+        self.frame_4_1 =None
+        self.frame_4 = None
+        self.frame_3 = None
+        self.canvas = None
+        self.canvas_2 = None
+        self.canvas_3 = None
+        self.info = None
+        self.music_info = None
+        self.advbutton = None
+        self.backbutton = None
+        self.mute = None
+        self.volup = None
+        self.slider = None
         if __name__ == "__main__":
             self.main_book_run()
 
@@ -735,6 +748,7 @@ class Book:
         corner_radius=8,text = '',image = photo,text_color='black',
         command = lambda: self.sound_switch('off')
         )
+        self.mute = btn2
         btn2.pack(side="right")
         btn2.place(relx=.5, rely=.5,y=300,x=270, anchor=CENTER)
         return
@@ -745,6 +759,7 @@ class Book:
         corner_radius=8,text = '',image = photo,text_color='black',
         command = lambda: self.sound_switch('on')
         )
+        self.volup = btn2
         btn2.pack(side="right")
         btn2.place(relx=.5, rely=.5,y=300,x=550, anchor=CENTER)
         return
@@ -876,24 +891,26 @@ class Book:
         moderator = len(final_pages) <= window.counter
         if moderator == False:
             self.music_player(window,title)
-        canvas = Canvas(bg="dark gray", width=595, height=770)
-        canvas.place(relx=.5, rely=.5,x=-60,anchor=CENTER)
-        canvas.config(highlightthickness=0)
+        if self.canvas_2 != None:
+            self.canvas_2.destroy()
+        self.canvas_2 = Canvas(bg="dark gray", width=595, height=770)
+        self.canvas_2.place(relx=.5, rely=.5,x=-60,anchor=CENTER)
+        self.canvas_2.config(highlightthickness=0)
         self.music_information(window)
         self.information(pages_total)
-        text = canvas.create_text(30, 20, text=str(window.counter) if moderator == False else self.thanks(), fill="black", font=('Times 16'),width=510, )
-        text = canvas.create_text(300, 400, text=final_pages[window.counter] if moderator == False else self.thanks(), fill="black", font=('Times 16'),width=530, anchor=CENTER)
+        text = self.canvas_2.create_text(30, 20, text=str(window.counter) if moderator == False else self.thanks(), fill="black", font=('Times 16'),width=510, )
+        text = self.canvas_2.create_text(300, 400, text=final_pages[window.counter] if moderator == False else self.thanks(), fill="black", font=('Times 16'),width=530, anchor=CENTER)
 
     def thanks(self):
         '''
         Currently the last page of the book. It just prints thank you.
         '''
         self.music(0,'none')
-        canvas = Canvas(bg="dark gray", width=595, height=770)
-        canvas.place(relx=.5, rely=.5,x=-60, anchor=CENTER)
-        canvas.config(highlightthickness=0)
-        text = canvas.create_text(300, 400, text="Thank you For Reading", fill="black", font=('Times 25'),width=430)
-        text = canvas.create_text(300, 550, text="Music by Eric Matyas\nwww.soundimage.org", fill="black", font=('Times 18'),width=430)
+        self.canvas_3 = Canvas(bg="dark gray", width=595, height=770)
+        self.canvas_3.place(relx=.5, rely=.5,x=-60, anchor=CENTER)
+        self.canvas_3.config(highlightthickness=0)
+        text = self.canvas_3.create_text(300, 400, text="Thank you For Reading", fill="black", font=('Times 25'),width=430)
+        text = self.canvas_3.create_text(300, 550, text="Music by Eric Matyas\nwww.soundimage.org", fill="black", font=('Times 18'),width=430)
 
 
     def information(self,pages_total):
@@ -902,9 +919,11 @@ class Book:
         '''
         temp = book_library.loc[book_library['Title'] == self.book_title]
         #temp['Cover'].item()
-        canvas = customtkinter.CTkLabel(width=225, height=500,text="Title:\n"+self.book_title+"\n\nAuthor:\n"+temp['Author'].item()+"\n\nYear:\n"+ str(temp['Year Published'].item())+"\n\nGenre:\n"+str(temp['Genre'].item())+"\n\n"+"Page Count: \n"+str(pages_total), text_font= ("Railway",14))
-        canvas.place(relx=.5, rely=.5,x=465,y=-100, anchor=CENTER)
-        canvas.config(highlightthickness=0)
+        if self.info!= None:
+            self.info.destroy()
+        self.info = customtkinter.CTkLabel(width=225, height=500,text="Title:\n"+self.book_title+"\n\nAuthor:\n"+temp['Author'].item()+"\n\nYear:\n"+ str(temp['Year Published'].item())+"\n\nGenre:\n"+str(temp['Genre'].item())+"\n\n"+"Page Count: \n"+str(pages_total), text_font= ("Railway",14))
+        self.info.place(relx=.5, rely=.5,x=465,y=-100, anchor=CENTER)
+        self.info.config(highlightthickness=0)
 
     def music_information(self,window):
         '''
@@ -918,9 +937,11 @@ class Book:
                 song = audio_map[title].iloc[(window.counter)]
         else:
             song = audio_map["The Raven"][1]
-        canvas = customtkinter.CTkLabel(width=280, height=80,text="Song Title: "+song+"\nBy: Eric Matyas\nwww.soundimage.org")
-        canvas.place(relx=.5, rely=.5,x=410,y=230, anchor=CENTER)
-        canvas.config(highlightthickness=0)
+        if self.music_info != None:
+            self.music_info.destroy()
+        self.music_info = customtkinter.CTkLabel(width=280, height=80,text="Song Title: "+song+"\nBy: Eric Matyas\nwww.soundimage.org")
+        self.music_info.place(relx=.5, rely=.5,x=410,y=230, anchor=CENTER)
+        self.music_info.config(highlightthickness=0)
 
     def menu_bar(self,window):
         frame_4 = customtkinter.CTkFrame(width=80, height=500)
@@ -931,10 +952,26 @@ class Book:
         self.settings_button(frame_4,window)
         self.upload_button(frame_4)
         frame_4.tkraise()
+        self.frame_4_1 = frame_4
     
     def library_return(self):
-        python = sys.executable
-        os.execl(python, python, * sys.argv)
+        self.info.destroy()
+        self.music_info.destroy()
+        self.mute.destroy()
+        self.volup.destroy()
+        self.slider.destroy()
+        self.advbutton.destroy()
+        self.backbutton.destroy()
+        self.frame_3.destroy()
+        self.frame_4.destroy()
+        self.canvas.destroy()
+        self.frame_4_1.destroy()
+        if self.canvas_2 != None:
+            self.canvas_2.destroy()
+        if self.canvas_3 != None:
+            self.canvas_3.destroy()
+        channel1.stop()
+        channel2.stop()
 
     def finder(self,window):
         self.page_name = tk.IntVar()
@@ -1024,6 +1061,7 @@ class Book:
         from_=0,
         to=100,
         command=volume)
+        self.slider = slider
         slider.place(relx=0.5, rely=0.5,x=410,y=300, anchor=CENTER)
         
     def adv_button(self,window,final_pages,title):
@@ -1040,6 +1078,7 @@ class Book:
         text_color='black',
         command = lambda: self.pages(window,final_pages,adv,title)
         )
+        self.advbutton = btn2
         btn2.pack(side="right")
         btn2.place(relx=.5, rely=.5,x=290, anchor=CENTER)
 
@@ -1057,6 +1096,7 @@ class Book:
         text_color='black',
         command = lambda: self.pages(window,final_pages,back,title)
         )
+        self.backbutton = btn2
         btn2.pack(side="right")
         btn2.place(relx=.5, rely=.5,x=-410, anchor=CENTER)
 
@@ -1107,11 +1147,13 @@ class Book:
         frame_3.place(relx=.5, rely=.5, anchor=CENTER)
         frame_3.configure()
         frame_3.tkraise()
+        self.frame_3 = frame_3
         frame_4 = Frame(width=1200, height=800)
         frame_4.place(relx=.5, rely=.5, anchor=CENTER)
         frame_4.configure()
         frame_4.tkraise()
         
+        self.frame_4 = frame_4
         window = frame_4
         window.counter = -1 #this is universal counter funtion that allows a user to traverse a story.
         final_pages, title = self.diction(self.book_title)
@@ -1121,14 +1163,14 @@ class Book:
         self.sound_switch_button()
         self.sound_switch_button2()
         self.music(0,'none')
-        canvas = Canvas(bg="dark gray", width=595, height=770)
-        canvas.place(relx=.5, rely=.5,x=-60, anchor=CENTER)
-        canvas.config(highlightthickness=0)
+        self.canvas = Canvas(bg="dark gray", width=595, height=770)
+        self.canvas.place(relx=.5, rely=.5,x=-60, anchor=CENTER)
+        self.canvas.config(highlightthickness=0)
         temp = book_library.loc[book_library['Title'] == self.book_title]
         logo = Image.open(temp['Cover'].item())
         logo = logo.resize((595,770))
         logo = ImageTk.PhotoImage(logo)
-        logo_label = Label(canvas,image=logo)
+        logo_label = Label(self.canvas,image=logo)
         logo_label.image = logo
         logo_label.place(relx=.5, rely=.5, anchor= CENTER)
         #canvas.create_text(300, 400, text="Good Luck On Your Fictional Journey!", fill="white", font=('Times 25'),width=430)
@@ -1162,4 +1204,5 @@ def main():
     
 if __name__ == "__main__":
     main()
+
 
