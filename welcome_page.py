@@ -898,8 +898,8 @@ class Book:
         self.canvas_2.config(highlightthickness=0)
         self.music_information(window)
         self.information(pages_total)
-        text = self.canvas_2.create_text(30, 20, text=str(window.counter) if moderator == False else self.thanks(), fill="black", font=('Times 16'),width=510, )
-        text = self.canvas_2.create_text(300, 400, text=final_pages[window.counter] if moderator == False else self.thanks(), fill="black", font=('Times 16'),width=530, anchor=CENTER)
+        text = self.canvas_2.create_text(30, 20, text=str(window.counter) if moderator == False else self.thanks(), fill="black", font=('Times 16'),width=540, )
+        text = self.canvas_2.create_text(300, 400, text=final_pages[window.counter] if moderator == False else self.thanks(), fill="black", font=('Times 16'),width=540, anchor=CENTER)
 
     def thanks(self):
         '''
@@ -955,8 +955,6 @@ class Book:
         self.frame_4_1 = frame_4
     
     def library_return(self):
-        self.info.destroy()
-        self.music_info.destroy()
         self.mute.destroy()
         self.volup.destroy()
         self.slider.destroy()
@@ -968,6 +966,8 @@ class Book:
         self.frame_4_1.destroy()
         if self.canvas_2 != None:
             self.canvas_2.destroy()
+        self.info.destroy()
+        self.music_info.destroy()
         if self.canvas_3 != None:
             self.canvas_3.destroy()
         channel1.stop()
@@ -1204,5 +1204,8 @@ def main():
     
 if __name__ == "__main__":
     main()
+
+
+
 
 
