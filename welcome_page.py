@@ -721,10 +721,12 @@ class Book:
     def sound_switch(self,var):
         if var == "off":
             self.sound = var
-            pygame.mixer.music.pause()
+            channel2.pause()
+            channel1.pause()
         elif var == 'on':
             self.sound = var
-            pygame.mixer.music.unpause()
+            channel2.unpause()
+            channel1.unpause()
         return
 
     def sound_switch_button(self):
@@ -779,24 +781,20 @@ class Book:
 
     def music(self,n,song):
         if n == 1:
-            sound_obj = pygame.mixer.Sound('ereadmp3/'+song)
-            pygame.mixer.find_channel().play(sound_obj, loops=3000)
-            # pygame.mixer.music.play(loops=3000)
+            song = pygame.mixer.Sound('ereadmp3/'+song)
+            channel1.play(song,loops=3000)
         elif self.status == "paused":
-            pygame.mixer.music.unpause()
+            channel1.unpause()
         else:
             i = 'do nothing'
 
     def sound_effects(self,n,sound):
         if n == 1:
-            sound_obj = pygame.mixer.Sound('ereadSounds/'+sound)
-            pygame.mixer.Sound.set_volume(sound_obj, .1)
-            pygame.mixer.find_channel().play(sound_obj, loops=0)
-            # pygame.mixer.Sound.set_volume(10)
-            # pygame.mixer.music.load('ereadSounds/'+sound)
-            # pygame.mixer.music.play(loops=0)
+            song = pygame.mixer.Sound('ereadSounds/'+sound)
+            song.set_volume(.2)
+            channel2.play(song,loops=0)
         elif self.status == "paused":
-            pygame.mixer.music.unpause()
+            channel2.unpause()
         else:
             i = 'do nothing'
 
@@ -883,8 +881,8 @@ class Book:
         canvas.config(highlightthickness=0)
         self.music_information(window)
         self.information(pages_total)
-        text = canvas.create_text(30, 20, text=str(window.counter) if moderator == False else self.thanks(), fill="black", font=('Times 15'),width=510, )
-        text = canvas.create_text(300, 400, text=final_pages[window.counter] if moderator == False else self.thanks(), fill="black", font=('Times 15'),width=530, anchor=CENTER)
+        text = canvas.create_text(30, 20, text=str(window.counter) if moderator == False else self.thanks(), fill="black", font=('Times 16'),width=510, )
+        text = canvas.create_text(300, 400, text=final_pages[window.counter] if moderator == False else self.thanks(), fill="black", font=('Times 16'),width=530, anchor=CENTER)
 
     def thanks(self):
         '''
@@ -1015,7 +1013,8 @@ class Book:
         def volume(self):
             val = round(slider.get()/100,1)
             print(val)
-            pygame.mixer.music.set_volume(val)
+            channel1.set_volume(val)
+            channel2.set_volume(val)
             return
 
         slider = customtkinter.CTkSlider(
@@ -1163,3 +1162,4 @@ def main():
     
 if __name__ == "__main__":
     main()
+
